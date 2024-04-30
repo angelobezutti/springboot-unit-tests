@@ -29,11 +29,8 @@ class UserServiceImplTest {
     private static final String EMAIL = "angelo@email.com";
     private static final String PASSWORD = "12345";
     private static final Integer INDEX = 0;
-    private static final String OBJETO_NÃO_ENCONTRADO = "Objeto Não Encontrado";
-
-
-
-
+    private static final String OBJETO_NAO_ENCONTRADO = "Objeto Não Encontrado";
+    private static final String EMAIL_JA_CADASTRADO = "Email já cadastrado no sistema";
 
     @InjectMocks
     private UserServiceImpl service;
@@ -71,12 +68,12 @@ class UserServiceImplTest {
 
     @Test
     void whenFindByIdThenAnObjectNotFoundException(){
-        when(repository.findById(anyInt())).thenThrow(new ObjectNotFoundException(OBJETO_NÃO_ENCONTRADO));
+        when(repository.findById(anyInt())).thenThrow(new ObjectNotFoundException(OBJETO_NAO_ENCONTRADO));
         try {
             service.findById(1);
         }catch (Exception ex){
             assertEquals(ObjectNotFoundException.class, ex.getClass());
-            assertEquals(OBJETO_NÃO_ENCONTRADO, ex.getMessage());
+            assertEquals(OBJETO_NAO_ENCONTRADO, ex.getMessage());
         }
     }
 
@@ -119,12 +116,34 @@ class UserServiceImplTest {
             service.create(userDTO);
         }catch (Exception ex){
             assertEquals(DataIntegratyViolationException.class, ex.getClass());
-            assertEquals("Email já cadastrado no sistema", ex.getMessage());
+            assertEquals(EMAIL_JA_CADASTRADO, ex.getMessage());
         }
     }
 
     @Test
-    void update() {
+    void whenUpdateThenReturnSuccess() {
+        when(repository.save(any())).thenReturn(user);
+
+        User response = service.update(userDTO);
+
+        assertNotNull(response);
+        assertEquals(User.class, response.getClass());
+        assertEquals(ID, response.getId());
+        assertEquals(NAME, response.getName());
+        assertEquals(EMAIL, response.getEmail());
+        assertEquals(PASSWORD, response.getPassword());
+    }
+
+    @Test
+    void whenUpdateThenReturnAnDataIntegrityViolationException() {
+        when(repository.findByEmail(anyString())).thenReturn(optionalUser);
+
+        try {
+            service.create(userDTO);
+        }catch (Exception ex){
+            assertEquals(DataIntegratyViolationException.class, ex.getClass());
+            assertEquals(EMAIL_JA_CADASTRADO, ex.getMessage());
+        }
     }
 
     @Test
